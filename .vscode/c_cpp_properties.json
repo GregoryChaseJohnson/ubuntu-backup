@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/keithuncouth/ESP32-CAM-ESP-IDF-Live-Streaming-Web-Server/main/**",
+                "/home/keithuncouth/esp-idf/components/**",
+                "/usr/include/**",
+                "/usr/include/x86_64-linux-gnu/bits/**",
+                "/home/keithuncouth/esp-idf/components/freertos/FreeRTOS-Kernel-V10.5.1/include/",
+                "/home/keithuncouth/esp-idf/components/esp_system/include/"
+            ],  
+            "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

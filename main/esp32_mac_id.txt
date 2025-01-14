@@ -1,0 +1,6 @@
+Mac address c4:de:e2:10:8e:18
+
+This is useful to assign a static ip address associated with this mac id so
+that in the event of a recconect the IP remains the same. 
+
+*This is for the router configuration*

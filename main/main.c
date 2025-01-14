@@ -1,33 +1,44 @@
-#include <esp_system.h>
-#include <nvs_flash.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include "esp_dsp.h"
+#include "esp_err.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/gpio.h"
-
+#include "esp_log.h"
 #include "esp_camera.h"
-#include "esp_http_server.h"
-#include "esp_timer.h"
+#include "jpeg_decoder.h"
+#include "img_proc.h"
 #include "camera_pins.h"
-#include "connect_wifi.h"
 
-static const char *TAG = "esp32-cam Webserver";
+#define CONFIG_XCLK_FREQ 10000000  // Adjusted clock frequency to slow down frame rate
+#define IMAGE_HEIGHT 120
+#define IMAGE_WIDTH 160
+#define RGB565_BYTES_PER_PIXEL 2
 
-#define PART_BOUNDARY "123456789000000000000987654321"
-static const char* _STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
-static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
-static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
+// Define the region of interest (ROI)
+#define ROI_X 48
+#define ROI_Y 68
+#define ROI_WIDTH 21  // Reduced ROI width
+#define ROI_HEIGHT 21 // Reduced ROI height
+#define PADDING 1     // Padding for convolution
 
-#define CONFIG_XCLK_FREQ 20000000 
+static const char *TAG = "camera_sobel";
 
-static esp_err_t init_camera(void)
-{
+// Statically allocate buffers
+static uint8_t grayscale_img_buf[IMAGE_WIDTH * IMAGE_HEIGHT];
+static float grayscale_float_buf[(ROI_WIDTH + 2 * PADDING) * (ROI_HEIGHT + 2 * PADDING)];
+static uint8_t out_img_buf[IMAGE_WIDTH * IMAGE_HEIGHT * RGB565_BYTES_PER_PIXEL];
+
+// Camera Initialization Function
+static esp_err_t init_camera(void) {
     camera_config_t camera_config = {
         .pin_pwdn  = CAM_PIN_PWDN,
         .pin_reset = CAM_PIN_RESET,
         .pin_xclk = CAM_PIN_XCLK,
         .pin_sccb_sda = CAM_PIN_SIOD,
         .pin_sccb_scl = CAM_PIN_SIOC,
-
         .pin_d7 = CAM_PIN_D7,
         .pin_d6 = CAM_PIN_D6,
         .pin_d5 = CAM_PIN_D5,
@@ -39,134 +50,167 @@ static esp_err_t init_camera(void)
         .pin_vsync = CAM_PIN_VSYNC,
         .pin_href = CAM_PIN_HREF,
         .pin_pclk = CAM_PIN_PCLK,
-
-        .xclk_freq_hz = CONFIG_XCLK_FREQ,
+        .xclk_freq_hz = CONFIG_XCLK_FREQ,  // Reduced clock frequency
         .ledc_timer = LEDC_TIMER_0,
         .ledc_channel = LEDC_CHANNEL_0,
-
         .pixel_format = PIXFORMAT_JPEG,
-        .frame_size = FRAMESIZE_VGA,
-
+        .frame_size = FRAMESIZE_QQVGA,
         .jpeg_quality = 10,
         .fb_count = 1,
-        .grab_mode = CAMERA_GRAB_WHEN_EMPTY};//CAMERA_GRAB_LATEST. Sets when buffers should be filled
+        .grab_mode = CAMERA_GRAB_WHEN_EMPTY
+    };
+
     esp_err_t err = esp_camera_init(&camera_config);
-    if (err != ESP_OK)
-    {
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Camera Init Failed");
         return err;
     }
+
     return ESP_OK;
 }
 
-esp_err_t jpg_stream_httpd_handler(httpd_req_t *req){
-    camera_fb_t * fb = NULL;
-    esp_err_t res = ESP_OK;
-    size_t _jpg_buf_len;
-    uint8_t * _jpg_buf;
-    char * part_buf[64];
-    static int64_t last_frame = 0;
-    if(!last_frame) {
-        last_frame = esp_timer_get_time();
+// Grayscale Conversion Function
+void convertToGreyscale(uint16_t *image, uint8_t *greyImage, int width, int height) {
+    for (int i = 0; i < width * height; i++) {
+        uint16_t pixel = image[i];
+        uint8_t r = (pixel >> 11) & 0x1F;
+        uint8_t g = (pixel >> 5) & 0x3F;
+        uint8_t b = pixel & 0x1F;
+        uint8_t red = (r * 255) / 31;
+        uint8_t green = (g * 255) / 63;
+        uint8_t blue = (b * 255) / 31;
+        greyImage[i] = (uint8_t)(0.3 * red + 0.59 * green + 0.11 * blue);
     }
+}
 
-    res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
-    if(res != ESP_OK){
-        return res;
+// Convert uint8_t grayscale image to float
+void convertToFloat(uint8_t *input, float *output, int width, int height) {
+    for (int i = 0; i < width * height; i++) {
+        output[i] = (float)input[i];
     }
+}
 
-    while(true){
-        fb = esp_camera_fb_get();
+// Add padding to the grayscale image
+void add_padding(float *input, float *output, int width, int height, int padding) {
+    int padded_width = width + 2 * padding;
+    int padded_height = height + 2 * padding;
+    
+    // Initialize the output buffer to zero (padding area)
+    memset(output, 0, padded_width * padded_height * sizeof(float));
+
+    // Copy the input image to the center of the output buffer
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            output[(y + padding) * padded_width + (x + padding)] = input[y * width + x];
+        }
+    }
+}
+
+// Convolution Function using ESP-DSP
+void conv2d_with_dsps(float *input, int width, int height, float *kernel, int kernel_size, float *output) {
+    int output_width = width - kernel_size + 1;
+    static float row_output[1024]; // Static buffer based on the maximum width
+
+    for (int i = 0; i < height - kernel_size + 1; i++) {
+        // Perform convolution on each row
+        dsps_conv_f32_ae32(&input[i * width], width, kernel, kernel_size, row_output);
+        // Copy the row output to the final output buffer
+        for (int j = 0; j < output_width; j++) {
+            output[i * output_width + j] = row_output[j];
+        }
+    }
+}
+
+void edge_detection_task(void *pvParameters) {
+    float kernel_h[9] = { -1, -2, -1, 0, 0, 0, 1, 2, 1 };
+    float kernel_v[9] = { -1, 0, 1, -2, 0, 2, -1, 0, 1 };
+    int kernel_size = 3;
+    int threshold = 150; // Increased threshold for edge detection
+
+    while (true) {
+        // Capture a frame from the camera
+        camera_fb_t *fb = esp_camera_fb_get();
         if (!fb) {
             ESP_LOGE(TAG, "Camera capture failed");
-            res = ESP_FAIL;
-            break;
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
         }
-        if(fb->format != PIXFORMAT_JPEG){
-            bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
-            if(!jpeg_converted){
-                ESP_LOGE(TAG, "JPEG compression failed");
-                esp_camera_fb_return(fb);
-                res = ESP_FAIL;
+
+        // Convert the JPEG image to grayscale
+        uint8_t *jpg_buf = fb->buf;
+        size_t jpg_buf_len = fb->len;
+        esp_jpeg_image_cfg_t jpeg_cfg = {
+            .indata = jpg_buf,
+            .indata_size = jpg_buf_len,
+            .outbuf = out_img_buf,
+            .outbuf_size = IMAGE_WIDTH * IMAGE_HEIGHT * RGB565_BYTES_PER_PIXEL,
+            .out_format = JPEG_IMAGE_FORMAT_RGB565,
+            .flags = {
+                .swap_color_bytes = 1,
             }
+        };
+        esp_jpeg_image_output_t outimg;
+
+        esp_err_t decode_res = esp_jpeg_decode(&jpeg_cfg, &outimg);
+        if (decode_res == ESP_OK) {
+            convertToGreyscale((uint16_t*)out_img_buf, grayscale_img_buf, IMAGE_WIDTH, IMAGE_HEIGHT);
+
+            // Extract the region of interest (ROI) and convert to float
+            float temp_buf[ROI_WIDTH * ROI_HEIGHT];
+            for (int y = 0; y < ROI_HEIGHT; y++) {
+                for (int x = 0; x < ROI_WIDTH; x++) {
+                    temp_buf[y * ROI_WIDTH + x] = (float)grayscale_img_buf[(ROI_Y + y) * IMAGE_WIDTH + (ROI_X + x)];
+                }
+            }
+
+            // Add padding to the ROI
+            add_padding(temp_buf, grayscale_float_buf, ROI_WIDTH, ROI_HEIGHT, PADDING);
+
+            int padded_width = ROI_WIDTH + 2 * PADDING;
+            int padded_height = ROI_HEIGHT + 2 * PADDING;
+            int output_width = padded_width - kernel_size + 1;
+            int output_height = padded_height - kernel_size + 1;
+            float output_h[output_width * output_height];
+            float output_v[output_width * output_height];
+
+            conv2d_with_dsps(grayscale_float_buf, padded_width, padded_height, kernel_h, kernel_size, output_h);
+            conv2d_with_dsps(grayscale_float_buf, padded_width, padded_height, kernel_v, kernel_size, output_v);
+
+            // Combine the horizontal and vertical edge detection results
+            float combined_output[output_width * output_height];
+            for (int i = 0; i < output_height; i++) {
+                for (int j = 0; j < output_width; j++) {
+                    combined_output[i * output_width + j] = 
+                        sqrtf(output_h[i * output_width + j] * output_h[i * output_width + j] +
+                              output_v[i * output_width + j] * output_v[i * output_width + j]);
+                }
+            }
+
+            // Confirmation print statement
+            printf("Edge detection completed for ROI.\n");
         } else {
-            _jpg_buf_len = fb->len;
-            _jpg_buf = fb->buf;
+            ESP_LOGE(TAG, "JPEG Decoding Failed");
         }
 
-        if(res == ESP_OK){
-            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
-        }
-        if(res == ESP_OK){
-            size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
-
-            res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
-        }
-        if(res == ESP_OK){
-            res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
-        }
-        if(fb->format != PIXFORMAT_JPEG){
-            free(_jpg_buf);
-        }
+        // Return the frame buffer back to the driver for reuse
         esp_camera_fb_return(fb);
-        if(res != ESP_OK){
-            break;
-        }
-        int64_t fr_end = esp_timer_get_time();
-        int64_t frame_time = fr_end - last_frame;
-        last_frame = fr_end;
-        frame_time /= 1000;
-        ESP_LOGI(TAG, "MJPG: %uKB %ums (%.1ffps)",
-            (uint32_t)(_jpg_buf_len/1024),
-            (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time);
+
+        // Delay to synchronize with the camera frame rate
+        vTaskDelay(400 / portTICK_PERIOD_MS);  // Adjust delay based on processing time and frame rate
     }
 
-    last_frame = 0;
-    return res;
+    vTaskDelete(NULL);
 }
 
-httpd_uri_t uri_get = {
-    .uri = "/",
-    .method = HTTP_GET,
-    .handler = jpg_stream_httpd_handler,
-    .user_ctx = NULL};
-httpd_handle_t setup_server(void)
-{
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    httpd_handle_t stream_httpd  = NULL;
-
-    if (httpd_start(&stream_httpd , &config) == ESP_OK)
-    {
-        httpd_register_uri_handler(stream_httpd , &uri_get);
+// Main Application Entry Point
+void app_main() {
+    esp_err_t res = init_camera();
+    if (res != ESP_OK) {
+        ESP_LOGE(TAG, "Camera initialization failed");
+        return;
     }
 
-    return stream_httpd;
-}
-
-void app_main()
-{
-    esp_err_t err;
-
-    // Initialize NVS
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
+    if (xTaskCreate(edge_detection_task, "Edge Detection Task", 8192, NULL, 5, NULL) != pdPASS) {
+        ESP_LOGE(TAG, "Task creation failed");
     }
-
-    connect_wifi();
-
-    if (wifi_connect_status)
-    {
-        err = init_camera();
-        if (err != ESP_OK)
-        {
-            printf("err: %s\n", esp_err_to_name(err));
-            return;
-        }
-        setup_server();
-        ESP_LOGI(TAG, "ESP32 CAM Web Server is up and running\n");
-    }
-    else
-        ESP_LOGI(TAG, "Failed to connected with Wi-Fi, check your network Credentials\n");
 }

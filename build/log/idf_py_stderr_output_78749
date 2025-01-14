@@ -1,0 +1,29 @@
+[0;33m--- esp-idf-monitor 1.4.0 on /dev/ttyUSB0 115200 ---[0m
+[0;33m--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x40081d35: panic_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/panic.c:452
+0x4008b7c1: esp_system_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/port/esp_system_chip.c:84
+0x4008e256: vApplicationStackOverflowHook at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:581
+0x4008ce91: vTaskSwitchContext at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c:3729
+0x4008e3a4: _frxt_dispatch at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:450
+0x4008e356: _frxt_int_exit at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:245
+[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x40081d35: panic_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/panic.c:452
+0x4008b7c1: esp_system_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/port/esp_system_chip.c:84
+0x4008e256: vApplicationStackOverflowHook at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:581
+0x4008ce91: vTaskSwitchContext at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c:3729
+0x4008e3a4: _frxt_dispatch at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:450
+0x4008e356: _frxt_int_exit at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:245
+[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0m

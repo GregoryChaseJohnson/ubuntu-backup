@@ -1,0 +1,68 @@
+[0;33m--- esp-idf-monitor 1.4.0 on /dev/ttyUSB0 115200 ---[0m
+[0;33m--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x4008d024: xTaskRemoveFromEventList at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c:3947 (discriminator 1)
+[0m
+[0;33m0x40088e14: memcpy at /builds/idf/crosstool-NG/.build/xtensa-esp32-elf/src/newlib/newlib/libc/machine/xtensa/memcpy.S:175
+0x40088e30: memcpy at /builds/idf/crosstool-NG/.build/xtensa-esp32-elf/src/newlib/newlib/libc/machine/xtensa/memcpy.S:197
+[0m
+[0;33m0x4008d021: xTaskRemoveFromEventList at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c:3947 (discriminator 1)
+0x4008bf7c: xQueueGenericSendFromISR at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/queue.c:1206
+0x40086211: ll_cam_send_event at /home/keithuncouth/esp32/components/esp32-camera/driver/cam_hal.c:106
+0x40086296: ll_cam_vsync_isr at /home/keithuncouth/esp32/components/esp32-camera/target/esp32/ll_cam.c:214
+0x40086432: gpio_isr_loop at /home/keithuncouth/esp/esp-idf/components/driver/gpio/gpio.c:463
+0x400864c2: gpio_intr_service at /home/keithuncouth/esp/esp-idf/components/driver/gpio/gpio.c:485
+0x40083699: _xt_lowint1 at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/xtensa_vectors.S:1240
+0x400899ef: xt_utils_wait_for_intr at /home/keithuncouth/esp/esp-idf/components/xtensa/include/xt_utils.h:81
+ (inlined by) esp_cpu_wait_for_intr at /home/keithuncouth/esp/esp-idf/components/esp_hw_support/cpu.c:111
+0x400e8e27: esp_pm_impl_waiti at /home/keithuncouth/esp/esp-idf/components/esp_pm/pm_impl.c:852
+0x400d2f10: esp_vApplicationIdleHook at /home/keithuncouth/esp/esp-idf/components/esp_system/freertos_hooks.c:57
+0x4008ca56: prvIdleTask at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c:4327 (discriminator 1)
+0x4008dfed: vPortTaskWrapper at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:162
+[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33mMultiple decode errors occured: Try checking the baud rate and XTAL frequency setting in menuconfig[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x40081d35: panic_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/panic.c:452
+0x4008b889: esp_system_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/port/esp_system_chip.c:84
+0x4008e31e: vApplicationStackOverflowHook at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:581
+0x4008cf59: vTaskSwitchContext at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c:3729
+0x4008e46c: _frxt_dispatch at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:450
+0x4008e41e: _frxt_int_exit at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:245
+[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x40081d35: panic_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/panic.c:452
+0x4008b889: esp_system_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/port/esp_system_chip.c:84
+0x4008e31e: vApplicationStackOverflowHook at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:581
+0x4008cf59: vTaskSwitchContext at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c:3729
+0x4008e46c: _frxt_dispatch at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:450
+0x4008e41e: _frxt_int_exit at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:245
+[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x40081d35: panic_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/panic.c:452
+0x4008b889: esp_system_abort at /home/keithuncouth/esp/esp-idf/components/esp_system/port/esp_system_chip.c:84
+0x4008e31e: vApplicationStackOverflowHook at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:581
+0x4008cf59: vTaskSwitchContext at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c:3729
+0x4008e46c: _frxt_dispatch at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:450
+0x4008e41e: _frxt_int_exit at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/portasm.S:245
+[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0m

@@ -1,0 +1,37 @@
+[0;33m--- esp-idf-monitor 1.4.0 on /dev/ttyUSB0 115200 ---[0m
+[0;33m--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x400da6d0: conv2d_with_dsps at /home/keithuncouth/esp32/main/main.c:73 (discriminator 3)
+[0m
+[0;33m0x400f5f40: conv_loop3 at /home/keithuncouth/esp32/components/convolution/dsps_conv_f32_ae32.S:106
+0x400f5f49: loop_mac_end_loop3 at /home/keithuncouth/esp32/components/convolution/dsps_conv_f32_ae32.S:108
+[0m
+[0;33m0x400da6cd: conv2d_with_dsps at /home/keithuncouth/esp32/main/main.c:73 (discriminator 3)
+0x400da7dc: edge_detection_task at /home/keithuncouth/esp32/main/main.c:165
+0x4008dfed: vPortTaskWrapper at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:162
+[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x400da6d0: conv2d_with_dsps at /home/keithuncouth/esp32/main/main.c:73 (discriminator 3)
+[0m
+[0;33m0x400f5f40: conv_loop3 at /home/keithuncouth/esp32/components/convolution/dsps_conv_f32_ae32.S:106
+0x400f5f49: loop_mac_end_loop3 at /home/keithuncouth/esp32/components/convolution/dsps_conv_f32_ae32.S:108
+[0m
+[0;33m0x400da6cd: conv2d_with_dsps at /home/keithuncouth/esp32/main/main.c:73 (discriminator 3)
+0x400da7dc: edge_detection_task at /home/keithuncouth/esp32/main/main.c:165
+0x4008dfed: vPortTaskWrapper at /home/keithuncouth/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:162
+[0m
+[0;33m0x40080400: _init at ??:?
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33m0x40081518: call_start_cpu1 at /home/keithuncouth/esp/esp-idf/components/esp_system/port/cpu_start.c:157
+[0m
+[0;33mMultiple decode errors occured: Try checking the baud rate and XTAL frequency setting in menuconfig[0m
+[0;33mMultiple decode errors occured: Try checking the baud rate and XTAL frequency setting in menuconfig[0m
+[0m

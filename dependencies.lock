@@ -1,3 +1,27 @@
-manifest_hash: 4e37bb0f9273c4de05f38688720fe32aa6e5b892452694a4f7a2ca1659f02cf6
+dependencies:
+  espressif/esp-dsp:
+    component_hash: 3e7bbd487f1357a1d4944d0c85966d049501ea281b8a4c7f93f7cfedd5b7f23d
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.4.12
+  espressif/esp_jpeg:
+    component_hash: null
+    source:
+      path: /home/keithuncouth/esp32/components/espressif__esp_jpeg
+      type: local
+    version: 1.0.0
+  espressif/mdns:
+    component_hash: ed10ef031bce505e423c5dbf0fdf2ce7a02df5f9ebffb18df2d6b9852e48817d
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.3.1
+  idf:
+    component_hash: null
+    source:
+      type: idf
+    version: 5.1.2
+manifest_hash: dda66b74325dea926ef02c83d99fa7d234468aea57407fc7dfc39de7b913e201
 target: esp32
 version: 1.0.0
